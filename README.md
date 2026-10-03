@@ -112,7 +112,7 @@ tests/                node:test unit tests
 
 ## Contributing
 
-Contributions are very welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Easy places to start:
+Contributions are very welcome - see [CONTRIBUTING.md](CONTRIBUTING.md). Easy places to start:
 
 - **Templates:** add structures to `js/editor/templates.js` (they are just SMILES)
 - **NMR accuracy:** improve the increment tables in `js/core/nmr.js` and add test cases

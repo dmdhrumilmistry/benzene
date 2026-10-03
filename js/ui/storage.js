@@ -38,7 +38,7 @@ export const Library = {
     const now = new Date().toISOString();
     const entry = { id: uid(), name: name || 'Untitled', doc, thumbnail, smiles, formula, created: now, updated: now };
     list.unshift(entry);
-    if (!write(KEYS.library, list)) throw new Error('Browser storage is full — export your library and delete some entries.');
+    if (!write(KEYS.library, list)) throw new Error('Browser storage is full - export your library and delete some entries.');
     return entry;
   },
   update(id, patch) {

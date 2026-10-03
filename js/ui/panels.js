@@ -9,7 +9,7 @@ import { Library } from './storage.js';
 import { smilesToName } from './pubchem.js';
 import { download, safeFilename } from './fileio.js';
 
-const fmt = (n, d = 4) => (Number.isFinite(n) ? n.toFixed(d) : '—');
+const fmt = (n, d = 4) => (Number.isFinite(n) ? n.toFixed(d) : '-');
 
 /** SMILES for a set of atoms (or null on failure). */
 export function smilesFor(mol, atomIds = null) {

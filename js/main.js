@@ -359,7 +359,7 @@ class App {
     const cells = [];
     for (const el of ELEMENT_LIST) {
       const row = el.row >= 9 ? el.row + 1 : el.row; // leave a gap row before f-block
-      cells.push(`<button class="pt-cell" style="grid-row:${row};grid-column:${el.col};color:${el.color}" data-el="${el.symbol}" title="${el.name} (${el.z}) — ${el.mass}"><b>${el.symbol}</b><span>${el.z}</span></button>`);
+      cells.push(`<button class="pt-cell" style="grid-row:${row};grid-column:${el.col};color:${el.color}" data-el="${el.symbol}" title="${el.name} (${el.z}) - ${el.mass}"><b>${el.symbol}</b><span>${el.z}</span></button>`);
     }
     host.innerHTML = cells.join('') + '<div style="grid-row:9;grid-column:1/-1;height:6px"></div>';
     $$('.pt-cell', host).forEach((b) => b.addEventListener('click', () => {
@@ -760,10 +760,10 @@ class App {
       if (h.type === 'atom') {
         const a = mol.getAtom(h.id);
         const hs = mol.implicitH(h.id);
-        this.status(`Atom ${a.label || a.el}${hs ? `H${hs > 1 ? hs : ''}` : ''}${a.charge ? ` (charge ${a.charge > 0 ? '+' : ''}${a.charge})` : ''} — type an element key, +/−, or Enter for a label`);
+        this.status(`Atom ${a.label || a.el}${hs ? `H${hs > 1 ? hs : ''}` : ''}${a.charge ? ` (charge ${a.charge > 0 ? '+' : ''}${a.charge})` : ''} - type an element key, +/−, or Enter for a label`);
       } else if (h.type === 'bond') {
         const b = mol.getBond(h.id);
-        this.status(`${['', 'Single', 'Double', 'Triple'][b.order] || ''} bond${b.stereo !== 'none' ? ` (${b.stereo})` : ''} — press 1/2/3, W, H, Y or Del`);
+        this.status(`${['', 'Single', 'Double', 'Triple'][b.order] || ''} bond${b.stereo !== 'none' ? ` (${b.stereo})` : ''} - press 1/2/3, W, H, Y or Del`);
       }
     });
     $('#status-zoom').textContent = '100%';
