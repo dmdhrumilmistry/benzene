@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Benzene — Chemical Structure Editor</title>
+  <meta name="description" content="Benzene is a free, open-source chemical structure drawing tool that runs entirely in your browser: draw molecules, compute properties, predict NMR spectra and export images or MOL/SMILES files.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Apply saved theme before first paint.
+    try { const t = localStorage.getItem('benzene.theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) { /* ignore */ }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" title="Benzene">
+      <img src="assets/favicon.svg" alt="" width="22" height="22">
+      <span>Benzene</span>
+    </a>
+    <nav class="menubar" id="menubar" aria-label="Main menu"></nav>
+    <div class="topbar-right">
+      <input id="doc-name" class="doc-name" value="Untitled" aria-label="Document name" spellcheck="false">
+      <button class="icon-btn" id="btn-theme" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+      <a class="icon-btn" href="https://github.com/dmdhrumilmistry/benzene" target="_blank" rel="noopener" title="Source code on GitHub" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="toolbox" id="toolbox" aria-label="Drawing tools"></aside>
+
+    <section class="stage">
+      <div class="actionbar" id="actionbar">
+        <div class="elements" id="elementbar" aria-label="Elements"></div>
+        <div class="spacer"></div>
+        <div class="actions" id="quick-actions"></div>
+      </div>
+      <div class="canvas-wrap" id="canvas-wrap">
+        <svg id="canvas" class="canvas" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drawing canvas"><g id="world"></g></svg>
+        <div class="empty-hint" id="empty-hint">
+          <h2>Start drawing</h2>
+          <p>Click to add a bond, pick a ring, or <button class="link" data-action="import-smiles">paste a SMILES</button> / <button class="link" data-action="name-lookup">look up a name</button>.</p>
+          <p class="muted">Hover an atom and type <kbd>N</kbd>, <kbd>O</kbd>, <kbd>+</kbd> … to edit it. Drop .mol / .sdf / .svg / .png files here.</p>
+        </div>
+      </div>
+      <footer class="statusbar">
+        <span id="status-msg">Ready</span>
+        <span id="status-formula" class="mono"></span>
+        <span id="status-pos" class="mono muted"></span>
+        <span id="status-zoom" class="mono"></span>
+      </footer>
+    </section>
+
+    <aside class="sidepanel" id="sidepanel">
+      <div class="tabs" role="tablist">
+        <button role="tab" class="tab active" data-tab="props">Properties</button>
+        <button role="tab" class="tab" data-tab="nmr">NMR</button>
+        <button role="tab" class="tab" data-tab="library">Library</button>
+      </div>
+      <div class="tab-panel active" id="tab-props"></div>
+      <div class="tab-panel" id="tab-nmr"></div>
+      <div class="tab-panel" id="tab-library"></div>
+    </aside>
+  </main>
+
+  <!-- Dialogs -->
+  <dialog id="dlg-periodic" class="dialog wide">
+    <form method="dialog" class="dialog-head"><h3>Periodic table</h3><button class="icon-btn" aria-label="Close">✕</button></form>
+    <div id="periodic-table" class="periodic"></div>
+  </dialog>
+
+  <dialog id="dlg-smiles" class="dialog">
+    <form method="dialog" class="dialog-head"><h3>Import SMILES / MOL</h3><button class="icon-btn" aria-label="Close">✕</button></form>
+    <p class="muted">Paste a SMILES string (e.g. <code>CC(=O)Oc1ccccc1C(=O)O</code>) or a MOL block.</p>
+    <textarea id="smiles-input" rows="6" spellcheck="false" placeholder="SMILES or MOL file contents"></textarea>
+    <div class="dialog-error" id="smiles-error"></div>
+    <div class="dialog-actions">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn primary" id="smiles-ok">Insert</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-name" class="dialog">
+    <form method="dialog" class="dialog-head"><h3>Name to structure</h3><button class="icon-btn" aria-label="Close">✕</button></form>
+    <p class="muted">Enter a common or IUPAC name. Common names are resolved offline; others are looked up on <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a> (requires internet).</p>
+    <input id="name-input" type="text" placeholder="e.g. ibuprofen, 2-methylpropan-1-ol" spellcheck="false">
+    <div class="dialog-error" id="name-error"></div>
+    <div class="dialog-actions">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn primary" id="name-ok">Insert</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-templates" class="dialog wide">
+    <form method="dialog" class="dialog-head"><h3>Structure templates</h3><button class="icon-btn" aria-label="Close">✕</button></form>
+    <input id="template-search" type="search" placeholder="Search templates…" spellcheck="false">
+    <div id="template-grid" class="template-grid"></div>
+  </dialog>
+
+  <dialog id="dlg-export" class="dialog">
+    <form method="dialog" class="dialog-head"><h3>Export image</h3><button class="icon-btn" aria-label="Close">✕</button></form>
+    <div class="export-preview" id="export-preview"></div>
+    <div class="form-grid">
+      <label>Format
+        <select id="export-format"><option value="png">PNG</option><option value="svg">SVG</option></select>
+      </label>
+      <label>Scale
+        <select id="export-scale"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option><option value="4">4×</option><option value="8">8×</option></select>
+      </label>
+      <label>Background
+        <select id="export-bg"><option value="transparent">Transparent</option><option value="#ffffff" selected>White</option></select>
+      </label>
+      <label>Style
+        <select id="export-style"><option value="screen">Screen</option><option value="acs">ACS 1996</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="export-embed" checked> Embed editable structure</label>
+    </div>
+    <p class="muted small">With “Embed editable structure”, re-open the PNG/SVG in Benzene to keep editing it.</p>
+    <div class="dialog-actions">
+      <button class="btn" id="export-copy">Copy to clipboard</button>
+      <button class="btn primary" id="export-ok">Download</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-help" class="dialog wide">
+    <form method="dialog" class="dialog-head"><h3>Keyboard shortcuts &amp; tips</h3><button class="icon-btn" aria-label="Close">✕</button></form>
+    <div class="help-grid" id="help-content"></div>
+  </dialog>
+
+  <dialog id="dlg-about" class="dialog">
+    <form method="dialog" class="dialog-head"><h3>About Benzene</h3><button class="icon-btn" aria-label="Close">✕</button></form>
+    <p><strong>Benzene</strong> is a free, open-source chemical structure editor that runs entirely in your browser. Nothing you draw leaves your computer (except optional PubChem name lookups).</p>
+    <p>Features: skeletal drawing, rings &amp; templates, stereo bonds, reaction &amp; mechanism arrows, SMILES/MOL import-export, molecular properties, isotope patterns and empirical <sup>1</sup>H/<sup>13</sup>C NMR prediction.</p>
+    <p class="muted small">NMR shifts are estimates from additive increment rules and are meant for teaching and quick sanity checks, not as a substitute for measured data.</p>
+    <p><a href="https://github.com/dmdhrumilmistry/benzene" target="_blank" rel="noopener">Source code &amp; issue tracker</a> · MIT License</p>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <input type="file" id="file-input" accept=".mol,.sdf,.sd,.smi,.smiles,.txt,.json,.svg,.png,.mol2" hidden>
+  <input type="file" id="library-input" accept=".json" hidden>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

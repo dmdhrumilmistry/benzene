@@ -1,0 +1,14 @@
+{
+  "name": "benzene",
+  "version": "0.1.0",
+  "description": "Open-source, browser-based chemical structure editor (ChemDraw-style) with property calculation and NMR prediction.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test",
+    "start": "python3 -m http.server 8080"
+  },
+  "engines": { "node": ">=20" },
+  "repository": { "type": "git", "url": "https://github.com/dmdhrumilmistry/benzene.git" }
+}
